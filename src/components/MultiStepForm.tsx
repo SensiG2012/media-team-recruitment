@@ -141,7 +141,7 @@ export default function MultiStepForm() {
 
   if (submitted) {
     return (
-      <Card className="glass-panel w-full max-w-xl rounded-[28px] border border-white/10 text-white shadow-[0_25px_80px_rgba(10,14,24,0.7)]">
+      <Card className="glass-panel w-full max-w-xl rounded-[28px] border border-white/15 bg-white/[0.06] text-white shadow-[0_25px_80px_rgba(10,14,24,0.7)] backdrop-blur-2xl">
         <CardContent className="space-y-5 p-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-2xl shadow-lg shadow-emerald-500/20">
             ✅
@@ -224,7 +224,7 @@ export default function MultiStepForm() {
 
 if (new Date() > DEADLINE) {
   return (
-    <Card className="w-full max-w-xl">
+    <Card className="glass-panel w-full max-w-xl rounded-[28px] border border-white/15 bg-white/[0.06] text-white shadow-xl backdrop-blur-2xl">
       <CardContent className="p-8 text-center">
         <h1 className="text-3xl font-bold">
           Applications Closed
@@ -239,8 +239,12 @@ if (new Date() > DEADLINE) {
 }
 
   return (
-    <Card className="glass-panel w-full max-w-2xl rounded-[30px] border border-white/10 p-1 text-white shadow-[0_30px_90px_rgba(12,18,32,0.82)]">
-      <CardContent className="space-y-6 rounded-[28px] bg-slate-950/20 p-6 sm:p-8">
+    <Card className="glossy-shell relative w-full max-w-2xl overflow-hidden rounded-[30px] border border-white/15 bg-white/[0.06] p-1 text-white shadow-[0_30px_90px_rgba(12,18,32,0.82)] backdrop-blur-2xl">
+      <div className="glossy-orb glossy-orb-one" />
+      <div className="glossy-orb glossy-orb-two" />
+      <div className="glossy-sheen" />
+
+      <CardContent className="relative z-10 space-y-6 rounded-[28px] bg-slate-950/25 p-4 backdrop-blur-xl sm:p-8">
         <div className="space-y-4 rounded-[26px] border border-white/10 bg-slate-900/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(255,255,255,0.06)_40%,_rgba(129,140,248,0.24)_100%)] shadow-[0_10px_30px_rgba(99,102,241,0.35)]">
@@ -576,12 +580,12 @@ if (new Date() > DEADLINE) {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex flex-col-reverse items-stretch justify-between gap-3 pt-2 sm:flex-row sm:items-center">
           <Button
             variant="outline"
             disabled={step === 1}
             onClick={() => setStep(step - 1)}
-            className="min-w-[110px] rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
             ← Back
           </Button>
@@ -589,22 +593,144 @@ if (new Date() > DEADLINE) {
           {step < maxSteps ? (
             <Button
               onClick={() => setStep(step + 1)}
-              className="min-w-[110px] rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110"
+              className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 sm:w-auto"
             >
               Next →
             </Button>
           ) : (
             <Button
-  disabled={isSubmitting}
-  onClick={submitApplication}
->
-  {isSubmitting
-    ? "Submitting..."
-    : "Submit Application"}
-</Button>
+              disabled={isSubmitting}
+              onClick={submitApplication}
+              className="min-h-11 w-full cursor-pointer rounded-full border border-emerald-300/40 bg-gradient-to-r from-emerald-500 to-cyan-500 px-5 text-white shadow-lg shadow-emerald-950/40 hover:brightness-110 disabled:cursor-not-allowed sm:w-auto"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Application"}
+            </Button>
           )}
         </div>
       </CardContent>
+
+      <style jsx>{`
+        .glossy-shell {
+          isolation: isolate;
+        }
+
+        .glossy-orb {
+          position: absolute;
+          z-index: 0;
+          width: 190px;
+          height: 190px;
+          border-radius: 9999px;
+          filter: blur(48px);
+          opacity: 0.35;
+          pointer-events: none;
+          animation: float 7s ease-in-out infinite;
+        }
+
+        .glossy-orb-one {
+          top: -85px;
+          right: -45px;
+          background: #8b5cf6;
+        }
+
+        .glossy-orb-two {
+          bottom: -95px;
+          left: -55px;
+          background: #2563eb;
+          animation-delay: -3s;
+        }
+
+        .glossy-sheen {
+          position: absolute;
+          z-index: 1;
+          inset: -100%;
+          pointer-events: none;
+          background: linear-gradient(
+            115deg,
+            transparent 35%,
+            rgba(255, 255, 255, 0.14) 48%,
+            transparent 60%
+          );
+          transform: translateX(-45%) rotate(8deg);
+          animation: sheen 8s ease-in-out infinite;
+        }
+
+        :global(button) {
+          cursor: pointer;
+          touch-action: manipulation;
+          transition:
+            transform 180ms ease,
+            box-shadow 180ms ease,
+            filter 180ms ease;
+        }
+
+        :global(button:hover:not(:disabled)) {
+          transform: translateY(-2px) scale(1.02);
+          filter: brightness(1.12);
+          box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        :global(button:active:not(:disabled)) {
+          transform: translateY(0) scale(0.98);
+        }
+
+        .glossy-shell :global(input:hover),
+        .glossy-shell :global(textarea:hover),
+        .glossy-shell :global([role="combobox"]:hover) {
+          border-color: rgba(167, 139, 250, 0.55);
+          background-color: rgba(15, 23, 42, 0.5);
+        }
+
+        .step-panel {
+          animation: panel-in 350ms ease-out both;
+        }
+
+        @keyframes panel-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes sheen {
+          0%,
+          35% {
+            transform: translateX(-45%) rotate(8deg);
+          }
+
+          65%,
+          100% {
+            transform: translateX(45%) rotate(8deg);
+          }
+        }
+
+        @keyframes float {
+          0%,
+          100% {
+            transform: translate(0, 0) scale(1);
+          }
+
+          50% {
+            transform: translate(20px, -15px) scale(1.1);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .glossy-orb,
+          .glossy-sheen,
+          .step-panel {
+            animation: none;
+          }
+
+          :global(button) {
+            transition: none;
+          }
+        }
+      `}</style>
     </Card>
   );
 }
