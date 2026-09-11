@@ -1220,6 +1220,16 @@
     }
   }
 
+  .bg-white\/10 {
+    background-color: #ffffff1a;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-white\/10 {
+      background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
+    }
+  }
+
   .bg-white\/\[0\.06\] {
     background-color: #ffffff0f;
   }
@@ -1261,6 +1271,10 @@
 
   .bg-clip-padding {
     background-clip: padding-box;
+  }
+
+  .object-contain {
+    object-fit: contain;
   }
 
   .p-\(--card-spacing\) {

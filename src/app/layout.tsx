@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Media Team Application",
   description: "Modern application form for the media team",
+  icons: {
+    icon: "/schoollogosadly.webp",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
