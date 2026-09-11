@@ -102,6 +102,8 @@ function MultiStepForm() {
         email: "",
         phone: "",
         contact_number: "",
+        parent_phone_number: "",
+        parent_whatsapp_number: "",
         campus: "",
         year: "",
         class_name: "",
@@ -112,6 +114,10 @@ function MultiStepForm() {
     });
     const maxSteps = 4;
     const progress = step / maxSteps * 100;
+    const showError = (message)=>{
+        setErrorMessage(message);
+        window.setTimeout(()=>setErrorMessage(""), 5000);
+    };
     const toggleRole = (role)=>{
         setFormData((current)=>({
                 ...current,
@@ -130,14 +136,30 @@ function MultiStepForm() {
                 ]
             }));
     };
-    const validateForm = ()=>{
-        if (!formData.full_name || !formData.student_id || !formData.guardian_name || !formData.guardian_email || !formData.email || !formData.phone || !formData.contact_number || !formData.year || !formData.campus || !formData.class_name || formData.roles.length === 0) {
-            setErrorMessage("Please fill in all required fields before submitting.");
-            window.setTimeout(()=>setErrorMessage(""), 5000);
+    const validateStep = (stepToValidate)=>{
+        if (stepToValidate === 1) {
+            const isComplete = !!formData.full_name.trim() && !!formData.student_id.trim() && !!formData.guardian_name.trim() && !!formData.email.trim() && !!formData.phone.trim() && !!formData.contact_number.trim() && !!formData.parent_phone_number.trim() && !!formData.parent_whatsapp_number.trim();
+            if (!isComplete) {
+                showError("Please fill in all required personal information fields.");
+                return false;
+            }
+        }
+        if (stepToValidate === 2 && (!formData.year || !formData.campus || !formData.class_name)) {
+            showError("Please select your year, campus, and class before continuing.");
             return false;
         }
+        if (stepToValidate === 3 && formData.roles.length === 0) {
+            showError("Please select at least one desired role before continuing.");
+            return false;
+        }
+        setErrorMessage("");
         return true;
     };
+    const validateForm = ()=>[
+            1,
+            2,
+            3
+        ].every((stepToValidate)=>validateStep(stepToValidate));
     const inputClass = "h-12 w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-slate-950/30 transition-all duration-200 focus-visible:border-violet-400/80 focus-visible:ring-4 focus-visible:ring-violet-500/15";
     const chipClass = "rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-100 transition-all duration-200 hover:border-violet-400/60 hover:bg-violet-500/10";
     const selectedChipClass = "rounded-full border border-violet-400/70 bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-950/40";
@@ -152,7 +174,7 @@ function MultiStepForm() {
                         children: "✅"
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 146,
+                        lineNumber: 166,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -160,7 +182,7 @@ function MultiStepForm() {
                         children: "Application Submitted Successfully"
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 149,
+                        lineNumber: 169,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -168,7 +190,7 @@ function MultiStepForm() {
                         children: "Thank you for your interest in joining the Media Team."
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 152,
+                        lineNumber: 172,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -176,18 +198,18 @@ function MultiStepForm() {
                         children: "Your application has been received and will be reviewed by the committee. Shortlisted applicants will be contacted through their school email or WhatsApp number."
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 155,
+                        lineNumber: 175,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 145,
+                lineNumber: 165,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/MultiStepForm.tsx",
-            lineNumber: 144,
+            lineNumber: 164,
             columnNumber: 7
         }, this);
     }
@@ -204,6 +226,8 @@ function MultiStepForm() {
                     email: formData.email,
                     phone: formData.phone,
                     contact_number: formData.contact_number,
+                    guardian_phone: formData.parent_phone_number,
+                    guardian_whatsapp: formData.parent_whatsapp_number,
                     campus: formData.campus,
                     year: formData.year,
                     class_name: formData.class_name,
@@ -243,115 +267,94 @@ function MultiStepForm() {
                         children: "Applications Closed"
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 229,
+                        lineNumber: 250,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "Applications for the Media Team are now closed."
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 233,
+                        lineNumber: 254,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 228,
+                lineNumber: 249,
                 columnNumber: 7
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/components/MultiStepForm.tsx",
-            lineNumber: 227,
+            lineNumber: 248,
             columnNumber: 5
         }, this);
     }
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
         className: "glossy-shell relative w-full max-w-2xl overflow-hidden rounded-[30px] border border-white/15 bg-white/[0.06] p-1 text-white shadow-[0_30px_90px_rgba(12,18,32,0.82)] backdrop-blur-2xl",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "jsx-e1d084b21365e4e6" + " " + "glossy-orb glossy-orb-one"
-            }, void 0, false, {
-                fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 243,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "jsx-e1d084b21365e4e6" + " " + "glossy-orb glossy-orb-two"
-            }, void 0, false, {
-                fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 244,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "jsx-e1d084b21365e4e6" + " " + "glossy-sheen"
-            }, void 0, false, {
-                fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 245,
-                columnNumber: 7
-            }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
                 className: "relative z-10 space-y-6 rounded-[28px] bg-slate-950/25 p-4 backdrop-blur-xl sm:p-8",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-4 rounded-[26px] border border-white/10 bg-slate-900/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+                        className: "jsx-52d6628ce371f278" + " " + "space-y-4 rounded-[26px] border border-white/10 bg-slate-900/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "flex items-center gap-3",
+                                className: "jsx-52d6628ce371f278" + " " + "flex items-center gap-3",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(255,255,255,0.06)_40%,_rgba(129,140,248,0.24)_100%)] shadow-[0_10px_30px_rgba(99,102,241,0.35)]",
+                                        className: "jsx-52d6628ce371f278" + " " + "flex h-11 w-11 items-center justify-center rounded-2xl border border-white/15 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.32),_rgba(255,255,255,0.06)_40%,_rgba(129,140,248,0.24)_100%)] shadow-[0_10px_30px_rgba(99,102,241,0.35)]",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-e1d084b21365e4e6" + " " + "flex h-7 w-7 items-center justify-center rounded-xl bg-slate-950/60 text-[11px] font-bold tracking-[0.18em] text-white/90",
+                                            className: "jsx-52d6628ce371f278" + " " + "flex h-7 w-7 items-center justify-center rounded-xl bg-slate-950/60 text-[11px] font-bold tracking-[0.18em] text-white/90",
                                             children: "MT"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MultiStepForm.tsx",
-                                            lineNumber: 251,
+                                            lineNumber: 268,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 250,
+                                        lineNumber: 267,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6",
+                                        className: "jsx-52d6628ce371f278",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                                className: "jsx-e1d084b21365e4e6" + " " + "text-[10px] font-medium tracking-[0.24em] text-slate-300 uppercase",
+                                                className: "jsx-52d6628ce371f278" + " " + "text-[10px] font-medium tracking-[0.24em] text-slate-300 uppercase",
                                                 children: "Media team"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 257,
+                                                lineNumber: 274,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                                className: "jsx-e1d084b21365e4e6" + " " + "text-lg font-semibold tracking-tight text-white",
+                                                className: "jsx-52d6628ce371f278" + " " + "text-lg font-semibold tracking-tight text-white",
                                                 children: "Application Form"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 277,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 256,
+                                        lineNumber: 273,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 249,
+                                lineNumber: 266,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "rounded-2xl border border-white/8 bg-slate-950/20 p-3",
+                                className: "jsx-52d6628ce371f278" + " " + "rounded-2xl border border-white/8 bg-slate-950/20 p-3",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "mb-2 flex items-center justify-between text-[10px] font-medium tracking-[0.22em] text-slate-300 uppercase",
+                                        className: "jsx-52d6628ce371f278" + " " + "mb-2 flex items-center justify-between text-[10px] font-medium tracking-[0.22em] text-slate-300 uppercase",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "jsx-e1d084b21365e4e6",
+                                                className: "jsx-52d6628ce371f278",
                                                 children: [
                                                     "Step ",
                                                     step,
@@ -360,24 +363,24 @@ function MultiStepForm() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 268,
+                                                lineNumber: 285,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                className: "jsx-e1d084b21365e4e6",
+                                                className: "jsx-52d6628ce371f278",
                                                 children: [
                                                     Math.round(progress),
                                                     "%"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 269,
+                                                lineNumber: 286,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 267,
+                                        lineNumber: 284,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$progress$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Progress"], {
@@ -385,69 +388,69 @@ function MultiStepForm() {
                                         className: "h-2 rounded-full bg-white/5"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 272,
+                                        lineNumber: 289,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 266,
+                                lineNumber: 283,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 248,
+                        lineNumber: 265,
                         columnNumber: 9
                     }, this),
                     errorMessage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200",
+                        className: "jsx-52d6628ce371f278" + " " + "rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200",
                         children: errorMessage
                     }, void 0, false, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 277,
+                        lineNumber: 294,
                         columnNumber: 11
                     }, this),
                     step === 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "step-panel space-y-5",
+                        className: "jsx-52d6628ce371f278" + " " + "space-y-5",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-3xl font-semibold tracking-tight text-white",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-3xl font-semibold tracking-tight text-white",
                                         children: "Personal Information"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 285,
+                                        lineNumber: 302,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-sm text-slate-400",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-sm text-slate-400",
                                         children: "Tell us a little about yourself."
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 288,
+                                        lineNumber: 305,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 284,
+                                lineNumber: 301,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "grid gap-4 sm:grid-cols-2",
+                                className: "jsx-52d6628ce371f278" + " " + "grid gap-4 sm:grid-cols-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2 sm:col-span-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2 sm:col-span-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "Full Name"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 295,
+                                                lineNumber: 312,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -460,54 +463,59 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 296,
+                                                lineNumber: 313,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 294,
+                                        lineNumber: 311,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2 sm:col-span-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2 sm:col-span-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "Student Admission Number"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 307,
+                                                lineNumber: 324,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
                                                 className: inputClass,
                                                 value: formData.student_id,
                                                 placeholder: "e.g. 3939",
-                                                onChange: (e)=>setFormData({
+                                                onChange: (e)=>{
+                                                    const studentId = e.target.value;
+                                                    const generatedEmail = formData.student_id ? `${formData.student_id}@sslsd.education` : "";
+                                                    setFormData({
                                                         ...formData,
-                                                        student_id: e.target.value
-                                                    })
+                                                        student_id: studentId,
+                                                        email: !formData.email || formData.email === generatedEmail ? studentId ? `${studentId}@sslsd.education` : "" : formData.email
+                                                    });
+                                                }
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 327,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 306,
+                                        lineNumber: 323,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2 sm:col-span-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2 sm:col-span-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "Parent / Guardian Name"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 321,
+                                                lineNumber: 352,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -520,24 +528,24 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 324,
+                                                lineNumber: 355,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 320,
+                                        lineNumber: 351,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
-                                                children: "Personal Email"
+                                                children: "Personal Email (Optional)"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 335,
+                                                lineNumber: 366,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -551,24 +559,24 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 336,
+                                                lineNumber: 367,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 334,
+                                        lineNumber: 365,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "School Email"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 348,
+                                                lineNumber: 379,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -582,24 +590,24 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 349,
+                                                lineNumber: 380,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 347,
+                                        lineNumber: 378,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "Phone Number"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 361,
+                                                lineNumber: 392,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -612,24 +620,24 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 362,
+                                                lineNumber: 393,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 360,
+                                        lineNumber: 391,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                                 className: "text-sm font-medium text-slate-200",
                                                 children: "WhatsApp Number"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 373,
+                                                lineNumber: 404,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -642,64 +650,124 @@ function MultiStepForm() {
                                                     })
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 374,
+                                                lineNumber: 405,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 372,
+                                        lineNumber: 403,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                                className: "text-sm font-medium text-slate-200",
+                                                children: "Parent Phone Number"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/MultiStepForm.tsx",
+                                                lineNumber: 416,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                                className: inputClass,
+                                                value: formData.parent_phone_number,
+                                                placeholder: "+971 5xx xxx xxx",
+                                                onChange: (e)=>setFormData({
+                                                        ...formData,
+                                                        parent_phone_number: e.target.value
+                                                    })
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/MultiStepForm.tsx",
+                                                lineNumber: 417,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/MultiStepForm.tsx",
+                                        lineNumber: 415,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        className: "jsx-52d6628ce371f278" + " " + "space-y-2",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
+                                                className: "text-sm font-medium text-slate-200",
+                                                children: "Parent WhatsApp Number"
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/MultiStepForm.tsx",
+                                                lineNumber: 428,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
+                                                className: inputClass,
+                                                value: formData.parent_whatsapp_number,
+                                                placeholder: "+971 5xx xxx xxx",
+                                                onChange: (e)=>setFormData({
+                                                        ...formData,
+                                                        parent_whatsapp_number: e.target.value
+                                                    })
+                                            }, void 0, false, {
+                                                fileName: "[project]/src/components/MultiStepForm.tsx",
+                                                lineNumber: 429,
+                                                columnNumber: 17
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/src/components/MultiStepForm.tsx",
+                                        lineNumber: 427,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 293,
+                                lineNumber: 310,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 283,
+                        lineNumber: 300,
                         columnNumber: 11
                     }, this),
                     step === 2 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "step-panel space-y-6",
+                        className: "jsx-52d6628ce371f278" + " " + "space-y-6",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-3xl font-semibold tracking-tight text-white",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-3xl font-semibold tracking-tight text-white",
                                         children: "Academic Information"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 390,
+                                        lineNumber: 448,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-sm text-slate-400",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-sm text-slate-400",
                                         children: "What's your Campus, along with your Year and Class."
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 393,
+                                        lineNumber: 451,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 389,
+                                lineNumber: 447,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                         className: "text-sm font-medium text-slate-200",
                                         children: "Year"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 399,
+                                        lineNumber: 457,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -715,12 +783,12 @@ function MultiStepForm() {
                                                     placeholder: "Select your year"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                    lineNumber: 405,
+                                                    lineNumber: 463,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 404,
+                                                lineNumber: 462,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -735,39 +803,39 @@ function MultiStepForm() {
                                                         ]
                                                     }, year, true, {
                                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                        lineNumber: 409,
+                                                        lineNumber: 467,
                                                         columnNumber: 21
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 407,
+                                                lineNumber: 465,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 400,
+                                        lineNumber: 458,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 398,
+                                lineNumber: 456,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                         className: "text-sm font-medium text-slate-200",
                                         children: "Campus"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 418,
+                                        lineNumber: 476,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "flex flex-wrap gap-3",
+                                        className: "jsx-52d6628ce371f278" + " " + "flex flex-wrap gap-3",
                                         children: Object.keys(campusOptions).map((campus)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                 type: "button",
                                                 variant: formData.campus === campus ? "default" : "outline",
@@ -780,33 +848,33 @@ function MultiStepForm() {
                                                 children: campus
                                             }, campus, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 421,
+                                                lineNumber: 479,
                                                 columnNumber: 19
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 419,
+                                        lineNumber: 477,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 417,
+                                lineNumber: 475,
                                 columnNumber: 13
                             }, this),
                             formData.campus && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                         className: "text-sm font-medium text-slate-200",
                                         children: "Class"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 442,
+                                        lineNumber: 500,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "flex flex-wrap gap-3",
+                                        className: "jsx-52d6628ce371f278" + " " + "flex flex-wrap gap-3",
                                         children: campusOptions[formData.campus].map((className)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                 type: "button",
                                                 variant: formData.class_name === className ? "default" : "outline",
@@ -818,67 +886,67 @@ function MultiStepForm() {
                                                 children: className
                                             }, className, false, {
                                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                lineNumber: 446,
+                                                lineNumber: 504,
                                                 columnNumber: 23
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 443,
+                                        lineNumber: 501,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 441,
+                                lineNumber: 499,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 388,
+                        lineNumber: 446,
                         columnNumber: 11
                     }, this),
                     step === 3 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "step-panel space-y-7",
+                        className: "jsx-52d6628ce371f278" + " " + "space-y-7",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-3xl font-semibold tracking-tight text-white",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-3xl font-semibold tracking-tight text-white",
                                         children: "Desired Roles"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 472,
+                                        lineNumber: 530,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-sm text-slate-400",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-sm text-slate-400",
                                         children: "Select as many roles as you'd like. At least one role is required."
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 475,
+                                        lineNumber: 533,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 471,
+                                lineNumber: 529,
                                 columnNumber: 13
                             }, this),
                             Object.entries(roleCategories).map(([category, roles])=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-e1d084b21365e4e6" + " " + "space-y-3",
+                                    className: "jsx-52d6628ce371f278" + " " + "space-y-3",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            className: "jsx-e1d084b21365e4e6" + " " + "text-base font-semibold text-slate-200",
+                                            className: "jsx-52d6628ce371f278" + " " + "text-base font-semibold text-slate-200",
                                             children: category
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MultiStepForm.tsx",
-                                            lineNumber: 482,
+                                            lineNumber: 540,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-e1d084b21365e4e6" + " " + "flex flex-wrap gap-2.5",
+                                            className: "jsx-52d6628ce371f278" + " " + "flex flex-wrap gap-2.5",
                                             children: roles.map((role)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                     type: "button",
                                                     variant: formData.roles.includes(role) ? "default" : "outline",
@@ -887,63 +955,63 @@ function MultiStepForm() {
                                                     children: role
                                                 }, role, false, {
                                                     fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                    lineNumber: 485,
+                                                    lineNumber: 543,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MultiStepForm.tsx",
-                                            lineNumber: 483,
+                                            lineNumber: 541,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, category, true, {
                                     fileName: "[project]/src/components/MultiStepForm.tsx",
-                                    lineNumber: 481,
+                                    lineNumber: 539,
                                     columnNumber: 15
                                 }, this))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 470,
+                        lineNumber: 528,
                         columnNumber: 11
                     }, this),
                     step === 4 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "step-panel space-y-6",
+                        className: "jsx-52d6628ce371f278" + " " + "space-y-6",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-3xl font-semibold tracking-tight text-white",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-3xl font-semibold tracking-tight text-white",
                                         children: "Experience & Resources"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 508,
+                                        lineNumber: 566,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
-                                        className: "jsx-e1d084b21365e4e6" + " " + "text-sm text-slate-400",
+                                        className: "jsx-52d6628ce371f278" + " " + "text-sm text-slate-400",
                                         children: "This section is completely optional."
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 511,
+                                        lineNumber: 569,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 507,
+                                lineNumber: 565,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-2",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-2",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Label"], {
                                         className: "text-sm font-medium text-slate-200",
                                         children: "Previous Experience"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 517,
+                                        lineNumber: 575,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -953,31 +1021,31 @@ function MultiStepForm() {
                                                 ...formData,
                                                 experience: e.target.value
                                             }),
-                                        className: "jsx-e1d084b21365e4e6" + " " + "min-h-[120px] w-full rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-slate-950/30 outline-none transition-all duration-200 focus:border-violet-400/80 focus:ring-4 focus:ring-violet-500/15"
+                                        className: "jsx-52d6628ce371f278" + " " + "min-h-[120px] w-full rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-slate-950/30 outline-none transition-all duration-200 focus:border-violet-400/80 focus:ring-4 focus:ring-violet-500/15"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 518,
+                                        lineNumber: 576,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 516,
+                                lineNumber: 574,
                                 columnNumber: 13
                             }, this),
                             Object.entries(resourceOptions).map(([category, resources])=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "jsx-e1d084b21365e4e6" + " " + "space-y-3",
+                                    className: "jsx-52d6628ce371f278" + " " + "space-y-3",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
-                                            className: "jsx-e1d084b21365e4e6" + " " + "text-base font-semibold text-slate-200",
+                                            className: "jsx-52d6628ce371f278" + " " + "text-base font-semibold text-slate-200",
                                             children: category
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MultiStepForm.tsx",
-                                            lineNumber: 530,
+                                            lineNumber: 588,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                            className: "jsx-e1d084b21365e4e6" + " " + "flex flex-wrap gap-2.5",
+                                            className: "jsx-52d6628ce371f278" + " " + "flex flex-wrap gap-2.5",
                                             children: resources.map((resource)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                                     type: "button",
                                                     variant: formData.resources.includes(resource) ? "default" : "outline",
@@ -986,22 +1054,22 @@ function MultiStepForm() {
                                                     children: resource
                                                 }, resource, false, {
                                                     fileName: "[project]/src/components/MultiStepForm.tsx",
-                                                    lineNumber: 533,
+                                                    lineNumber: 591,
                                                     columnNumber: 21
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/MultiStepForm.tsx",
-                                            lineNumber: 531,
+                                            lineNumber: 589,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, category, true, {
                                     fileName: "[project]/src/components/MultiStepForm.tsx",
-                                    lineNumber: 529,
+                                    lineNumber: 587,
                                     columnNumber: 15
                                 }, this)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "jsx-e1d084b21365e4e6" + " " + "space-y-3 rounded-2xl border border-white/8 bg-slate-950/20 p-4",
+                                className: "jsx-52d6628ce371f278" + " " + "space-y-3 rounded-2xl border border-white/8 bg-slate-950/20 p-4",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                         type: "button",
@@ -1011,7 +1079,7 @@ function MultiStepForm() {
                                         children: "Other Equipment"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 554,
+                                        lineNumber: 612,
                                         columnNumber: 15
                                     }, this),
                                     formData.resources.includes("Other Equipment") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -1024,42 +1092,43 @@ function MultiStepForm() {
                                             })
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                                        lineNumber: 570,
+                                        lineNumber: 628,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 553,
+                                lineNumber: 611,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 506,
+                        lineNumber: 564,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                        className: "jsx-e1d084b21365e4e6" + " " + "flex flex-col-reverse items-stretch justify-between gap-3 pt-2 sm:flex-row sm:items-center",
+                        className: "jsx-52d6628ce371f278" + " " + "flex flex-col-reverse items-stretch justify-between gap-3 pt-2 sm:flex-row sm:items-center",
                         children: [
-                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                            step > 1 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 variant: "outline",
-                                disabled: step === 1,
                                 onClick: ()=>setStep(step - 1),
-                                className: "min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto",
+                                className: "min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 sm:w-auto",
                                 children: "← Back"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 584,
-                                columnNumber: 11
+                                lineNumber: 643,
+                                columnNumber: 13
                             }, this),
                             step < maxSteps ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                                onClick: ()=>setStep(step + 1),
+                                onClick: ()=>{
+                                    if (validateStep(step)) setStep(step + 1);
+                                },
                                 className: "min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 sm:w-auto",
                                 children: "Next →"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 594,
+                                lineNumber: 653,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                                 disabled: isSubmitting,
@@ -1068,33 +1137,33 @@ function MultiStepForm() {
                                 children: isSubmitting ? "Submitting..." : "Submit Application"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                                lineNumber: 601,
+                                lineNumber: 662,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/MultiStepForm.tsx",
-                        lineNumber: 583,
+                        lineNumber: 641,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/MultiStepForm.tsx",
-                lineNumber: 247,
+                lineNumber: 264,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$styled$2d$jsx$2f$style$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                id: "e1d084b21365e4e6",
-                children: ".glossy-shell.jsx-e1d084b21365e4e6{isolation:isolate}.glossy-orb.jsx-e1d084b21365e4e6{z-index:0;filter:blur(48px);opacity:.35;pointer-events:none;border-radius:9999px;width:190px;height:190px;animation:7s ease-in-out infinite float;position:absolute}.glossy-orb-one.jsx-e1d084b21365e4e6{background:#8b5cf6;top:-85px;right:-45px}.glossy-orb-two.jsx-e1d084b21365e4e6{background:#2563eb;animation-delay:-3s;bottom:-95px;left:-55px}.glossy-sheen.jsx-e1d084b21365e4e6{z-index:1;pointer-events:none;background:linear-gradient(115deg,#0000 35%,#ffffff24 48%,#0000 60%);animation:8s ease-in-out infinite sheen;position:absolute;inset:-100%;transform:translate(-45%)rotate(8deg)}button{cursor:pointer;touch-action:manipulation;transition:transform .18s,box-shadow .18s,filter .18s}button:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-2px)scale(1.02);box-shadow:0 8px 24px #6366f14d}button:active:not(:disabled){transform:translateY(0)scale(.98)}.glossy-shell.jsx-e1d084b21365e4e6 input:hover,.glossy-shell.jsx-e1d084b21365e4e6 textarea:hover,.glossy-shell.jsx-e1d084b21365e4e6 [role=combobox]:hover{background-color:#0f172a80;border-color:#a78bfa8c}.step-panel.jsx-e1d084b21365e4e6{animation:.35s ease-out both panel-in}@keyframes panel-in{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}@keyframes sheen{0%,35%{transform:translate(-45%)rotate(8deg)}65%,to{transform:translate(45%)rotate(8deg)}}@keyframes float{0%,to{transform:translate(0)scale(1)}50%{transform:translate(20px,-15px)scale(1.1)}}@media (prefers-reduced-motion:reduce){.glossy-orb.jsx-e1d084b21365e4e6,.glossy-sheen.jsx-e1d084b21365e4e6,.step-panel.jsx-e1d084b21365e4e6{animation:none}button{transition:none}}"
+                id: "52d6628ce371f278",
+                children: ".glossy-shell.jsx-52d6628ce371f278{isolation:isolate}button{cursor:pointer;touch-action:manipulation}.glossy-shell.jsx-52d6628ce371f278 input:hover,.glossy-shell.jsx-52d6628ce371f278 textarea:hover,.glossy-shell.jsx-52d6628ce371f278 [role=combobox]:hover{background-color:#0f172a80;border-color:#a78bfa8c}"
             }, void 0, false, void 0, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/MultiStepForm.tsx",
-        lineNumber: 242,
+        lineNumber: 263,
         columnNumber: 5
     }, this);
 }
-_s(MultiStepForm, "kvFy8B8nWk6mNr7Yy5SVwWjy6eQ=");
+_s(MultiStepForm, "VgoP36pHbNniudrIBqeph8GIK+4=");
 _c = MultiStepForm;
 var _c;
 __turbopack_context__.k.register(_c, "MultiStepForm");

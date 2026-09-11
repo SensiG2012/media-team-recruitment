@@ -78,6 +78,8 @@ export default function MultiStepForm() {
     email: "",
     phone: "",
     contact_number: "",
+    parent_phone_number: "",
+    parent_whatsapp_number: "",
     campus: "",
     year: "",
     class_name: "",
@@ -89,6 +91,11 @@ export default function MultiStepForm() {
 
   const maxSteps = 4;
   const progress = (step / maxSteps) * 100;
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    window.setTimeout(() => setErrorMessage(""), 5000);
+  };
 
   const toggleRole = (role: string) => {
     setFormData((current) => ({
@@ -108,27 +115,40 @@ export default function MultiStepForm() {
     }));
   };
 
-  const validateForm = () => {
-    if (
-      !formData.full_name ||
-      !formData.student_id ||
-      !formData.guardian_name ||
-      !formData.guardian_email ||
-      !formData.email ||
-      !formData.phone ||
-      !formData.contact_number ||
-      !formData.year ||
-      !formData.campus ||
-      !formData.class_name ||
-      formData.roles.length === 0
-    ) {
-      setErrorMessage("Please fill in all required fields before submitting.");
-      window.setTimeout(() => setErrorMessage(""), 5000);
+  const validateStep = (stepToValidate: number) => {
+    if (stepToValidate === 1) {
+      const isComplete =
+        !! formData.full_name.trim() &&
+        !! formData.student_id.trim() &&
+        !! formData.guardian_name.trim() &&
+        !! formData.email.trim() &&
+        !! formData.phone.trim() &&
+        !! formData.contact_number.trim() &&
+        !! formData.parent_phone_number.trim() &&
+        !! formData.parent_whatsapp_number.trim();
+
+      if (!isComplete) {
+        showError("Please fill in all required personal information fields.");
+        return false;
+      }
+    }
+
+    if (stepToValidate === 2 && (!formData.year || !formData.campus || !formData.class_name)) {
+      showError("Please select your year, campus, and class before continuing.");
       return false;
     }
 
+    if (stepToValidate === 3 && formData.roles.length === 0) {
+      showError("Please select at least one desired role before continuing.");
+      return false;
+    }
+
+    setErrorMessage("");
     return true;
   };
+
+  const validateForm = () =>
+    [1, 2, 3].every((stepToValidate) => validateStep(stepToValidate));
 
   const inputClass =
     "h-12 w-full rounded-2xl border border-white/10 bg-slate-950/30 px-4 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-slate-950/30 transition-all duration-200 focus-visible:border-violet-400/80 focus-visible:ring-4 focus-visible:ring-violet-500/15";
@@ -178,7 +198,8 @@ export default function MultiStepForm() {
           email: formData.email,
           phone: formData.phone,
           contact_number: formData.contact_number,
-
+          guardian_phone: formData.parent_phone_number,
+          guardian_whatsapp: formData.parent_whatsapp_number,
           campus: formData.campus,
           year: formData.year,
           class_name: formData.class_name,
@@ -240,10 +261,6 @@ if (new Date() > DEADLINE) {
 
   return (
     <Card className="glossy-shell relative w-full max-w-2xl overflow-hidden rounded-[30px] border border-white/15 bg-white/[0.06] p-1 text-white shadow-[0_30px_90px_rgba(12,18,32,0.82)] backdrop-blur-2xl">
-      <div className="glossy-orb glossy-orb-one" />
-      <div className="glossy-orb glossy-orb-two" />
-      <div className="glossy-sheen" />
-
       <CardContent className="relative z-10 space-y-6 rounded-[28px] bg-slate-950/25 p-4 backdrop-blur-xl sm:p-8">
         <div className="space-y-4 rounded-[26px] border border-white/10 bg-slate-900/20 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="flex items-center gap-3">
@@ -280,7 +297,7 @@ if (new Date() > DEADLINE) {
         )}
 
         {step === 1 && (
-          <div className="step-panel space-y-5">
+          <div className="space-y-5">
             <div className="space-y-2">
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Personal Information
@@ -311,9 +328,23 @@ if (new Date() > DEADLINE) {
                   className={inputClass}
                   value={formData.student_id}
                   placeholder="e.g. 3939"
-                  onChange={(e) =>
-                    setFormData({ ...formData, student_id: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const studentId = e.target.value;
+                    const generatedEmail = formData.student_id
+                      ? `${formData.student_id}@sslsd.education`
+                      : "";
+
+                    setFormData({
+                      ...formData,
+                      student_id: studentId,
+                      email:
+                        !formData.email || formData.email === generatedEmail
+                          ? studentId
+                            ? `${studentId}@sslsd.education`
+                            : ""
+                          : formData.email,
+                    });
+                  }}
                 />
               </div>
 
@@ -332,7 +363,7 @@ if (new Date() > DEADLINE) {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">Personal Email</Label>
+                <Label className="text-sm font-medium text-slate-200">Personal Email (Optional)</Label>
                 <Input
                   type="email"
                   className={inputClass}
@@ -380,18 +411,45 @@ if (new Date() > DEADLINE) {
                   }
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-200">Parent Phone Number</Label>
+                <Input
+                  className={inputClass}
+                  value={formData.parent_phone_number}
+                  placeholder="+971 5xx xxx xxx"
+                  onChange={(e) =>
+                    setFormData({ ...formData, parent_phone_number: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-200">Parent WhatsApp Number</Label>
+                <Input
+                  className={inputClass}
+                  value={formData.parent_whatsapp_number}
+                  placeholder="+971 5xx xxx xxx"
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      parent_whatsapp_number: e.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="step-panel space-y-6">
+          <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Academic Information
               </h2>
               <p className="text-sm text-slate-400">
-                What's your Campus, along with your Year and Class.
+                What&apos;s your Campus, along with your Year and Class.
               </p>
             </div>
 
@@ -467,13 +525,13 @@ if (new Date() > DEADLINE) {
         )}
 
         {step === 3 && (
-          <div className="step-panel space-y-7">
+          <div className="space-y-7">
             <div className="space-y-2">
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Desired Roles
               </h2>
               <p className="text-sm text-slate-400">
-                Select as many roles as you'd like. At least one role is required.
+                Select as many roles as you&apos;d like. At least one role is required.
               </p>
             </div>
 
@@ -503,7 +561,7 @@ if (new Date() > DEADLINE) {
         )}
 
         {step === 4 && (
-          <div className="step-panel space-y-6">
+          <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Experience & Resources
@@ -581,18 +639,21 @@ if (new Date() > DEADLINE) {
         )}
 
         <div className="flex flex-col-reverse items-stretch justify-between gap-3 pt-2 sm:flex-row sm:items-center">
-          <Button
-            variant="outline"
-            disabled={step === 1}
-            onClick={() => setStep(step - 1)}
-            className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
-          >
-            ← Back
-          </Button>
+          {step > 1 && (
+            <Button
+              variant="outline"
+              onClick={() => setStep(step - 1)}
+              className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border-white/10 bg-white/5 px-5 text-slate-200 hover:bg-white/10 sm:w-auto"
+            >
+              ← Back
+            </Button>
+          )}
 
           {step < maxSteps ? (
             <Button
-              onClick={() => setStep(step + 1)}
+              onClick={() => {
+                if (validateStep(step)) setStep(step + 1);
+              }}
               className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 sm:w-auto"
             >
               Next →
@@ -614,63 +675,9 @@ if (new Date() > DEADLINE) {
           isolation: isolate;
         }
 
-        .glossy-orb {
-          position: absolute;
-          z-index: 0;
-          width: 190px;
-          height: 190px;
-          border-radius: 9999px;
-          filter: blur(48px);
-          opacity: 0.35;
-          pointer-events: none;
-          animation: float 7s ease-in-out infinite;
-        }
-
-        .glossy-orb-one {
-          top: -85px;
-          right: -45px;
-          background: #8b5cf6;
-        }
-
-        .glossy-orb-two {
-          bottom: -95px;
-          left: -55px;
-          background: #2563eb;
-          animation-delay: -3s;
-        }
-
-        .glossy-sheen {
-          position: absolute;
-          z-index: 1;
-          inset: -100%;
-          pointer-events: none;
-          background: linear-gradient(
-            115deg,
-            transparent 35%,
-            rgba(255, 255, 255, 0.14) 48%,
-            transparent 60%
-          );
-          transform: translateX(-45%) rotate(8deg);
-          animation: sheen 8s ease-in-out infinite;
-        }
-
         :global(button) {
           cursor: pointer;
           touch-action: manipulation;
-          transition:
-            transform 180ms ease,
-            box-shadow 180ms ease,
-            filter 180ms ease;
-        }
-
-        :global(button:hover:not(:disabled)) {
-          transform: translateY(-2px) scale(1.02);
-          filter: brightness(1.12);
-          box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-        }
-
-        :global(button:active:not(:disabled)) {
-          transform: translateY(0) scale(0.98);
         }
 
         .glossy-shell :global(input:hover),
@@ -680,56 +687,6 @@ if (new Date() > DEADLINE) {
           background-color: rgba(15, 23, 42, 0.5);
         }
 
-        .step-panel {
-          animation: panel-in 350ms ease-out both;
-        }
-
-        @keyframes panel-in {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes sheen {
-          0%,
-          35% {
-            transform: translateX(-45%) rotate(8deg);
-          }
-
-          65%,
-          100% {
-            transform: translateX(45%) rotate(8deg);
-          }
-        }
-
-        @keyframes float {
-          0%,
-          100% {
-            transform: translate(0, 0) scale(1);
-          }
-
-          50% {
-            transform: translate(20px, -15px) scale(1.1);
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .glossy-orb,
-          .glossy-sheen,
-          .step-panel {
-            animation: none;
-          }
-
-          :global(button) {
-            transition: none;
-          }
-        }
       `}</style>
     </Card>
   );
