@@ -64,22 +64,34 @@ const resourceOptions = {
   ],
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^\+\d{7,15}$/;
+type PhoneFieldKey =
+  | "phone"
+  | "contact_number"
+  | "parent_phone_number"
+  | "parent_whatsapp_number";
+
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [touchedPhoneFields, setTouchedPhoneFields] = useState<
+    Partial<Record<PhoneFieldKey, boolean>>
+  >({});
 
   const [formData, setFormData] = useState({
     full_name: "",
     student_id: "",
     guardian_name: "",
     guardian_email: "",
+    personal_email: "",
     email: "",
-    phone: "",
-    contact_number: "",
-    parent_phone_number: "",
-    parent_whatsapp_number: "",
+    phone: "+974",
+    contact_number: "+974",
+    parent_phone_number: "+974",
+    parent_whatsapp_number: "+974",
     campus: "",
     year: "",
     class_name: "",
@@ -121,7 +133,7 @@ export default function MultiStepForm() {
         !! formData.full_name.trim() &&
         !! formData.student_id.trim() &&
         !! formData.guardian_name.trim() &&
-        !! formData.email.trim() &&
+        !! formData.personal_email.trim() &&
         !! formData.phone.trim() &&
         !! formData.contact_number.trim() &&
         !! formData.parent_phone_number.trim() &&
@@ -129,6 +141,27 @@ export default function MultiStepForm() {
 
       if (!isComplete) {
         showError("Please fill in all required personal information fields.");
+        return false;
+      }
+
+      const hasValidEmails =
+        emailPattern.test(formData.personal_email.trim()) &&
+        emailPattern.test(formData.email.trim()) &&
+        (!formData.guardian_email.trim() || emailPattern.test(formData.guardian_email.trim()));
+      const hasValidPhones = [
+        formData.phone,
+        formData.contact_number,
+        formData.parent_phone_number,
+        formData.parent_whatsapp_number,
+      ].every((value) => phonePattern.test(value));
+
+      if (!hasValidEmails) {
+        showError("Please enter valid email addresses.");
+        return false;
+      }
+
+      if (!hasValidPhones) {
+        showError("Please enter valid phone numbers.");
         return false;
       }
     }
@@ -158,6 +191,80 @@ export default function MultiStepForm() {
 
   const selectedChipClass =
     "rounded-full border border-violet-400/70 bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-violet-950/40";
+
+  const getEmailError = (value: string, optional = false) =>
+    value.trim() && (!optional || value.trim()) && !emailPattern.test(value.trim())
+      ? "Please enter a valid email address."
+      : "";
+
+  const getPhoneError = (value: string, touched = false) =>
+    touched && value && !phonePattern.test(value)
+      ? "Use + followed by 7 to 15 digits."
+      : "";
+
+  const getWordCount = (text: string) =>
+    text.trim() ? text.trim().split(/\s+/).length : 0;
+
+  const limitWords = (text: string, limit: number) =>
+    text.trim().split(/\s+/).slice(0, limit).join(" ");
+
+  const renderPhoneField = (
+    label: string,
+    valueKey: PhoneFieldKey,
+  ) => {
+    const value = formData[valueKey];
+    const phoneError = getPhoneError(value, touchedPhoneFields[valueKey]);
+    const inputId = `${valueKey}-input`;
+
+    return (
+      <div className="space-y-2">
+        <Label
+          htmlFor={inputId}
+          className="text-sm font-medium text-slate-200"
+          onClick={() =>
+            setTouchedPhoneFields((current) => ({
+              ...current,
+              [valueKey]: true,
+            }))
+          }
+        >
+          {label}
+        </Label>
+        <Input
+            id={inputId}
+            className={inputClass}
+            value={value}
+            placeholder="+974501234567"
+            inputMode="tel"
+            aria-invalid={!!phoneError}
+            onFocus={() =>
+              setTouchedPhoneFields((current) => ({
+                ...current,
+                [valueKey]: true,
+              }))
+            }
+            onKeyDown={(event) => {
+              if (event.key.length === 1 && !/[\d+]/.test(event.key)) {
+                event.preventDefault();
+              }
+
+              if (event.key === "+" && event.currentTarget.selectionStart !== 0) {
+                event.preventDefault();
+              }
+            }}
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                [valueKey]: event.target.value
+                  .replace(/[^\d+]/g, "")
+                  .replace(/(?!^)\+/g, ""),
+              })
+            }
+          />
+        {phoneError && <p className="text-xs text-rose-300">{phoneError}</p>}
+      </div>
+    );
+  };
 
   if (submitted) {
     return (
@@ -194,6 +301,7 @@ export default function MultiStepForm() {
           student_id: formData.student_id,
           guardian_name: formData.guardian_name,
           guardian_email: formData.guardian_email,
+          personal_email: formData.personal_email,
 
           email: formData.email,
           phone: formData.phone,
@@ -329,24 +437,78 @@ if (new Date() > DEADLINE) {
                   value={formData.student_id}
                   placeholder="e.g. 3939"
                   onChange={(e) => {
-                    const studentId = e.target.value;
-                    const generatedEmail = formData.student_id
+                    const generatedSchoolEmail = formData.student_id
                       ? `${formData.student_id}@sslsd.education`
                       : "";
 
                     setFormData({
                       ...formData,
-                      student_id: studentId,
+                      student_id: e.target.value,
                       email:
-                        !formData.email || formData.email === generatedEmail
-                          ? studentId
-                            ? `${studentId}@sslsd.education`
+                        !formData.email || formData.email === generatedSchoolEmail
+                          ? e.target.value
+                            ? `${e.target.value}@sslsd.education`
                             : ""
                           : formData.email,
                     });
                   }}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-200">Parent / Guardian Email (Optional)</Label>
+                <Input
+                  type="email"
+                  className={inputClass}
+                  value={formData.guardian_email}
+                  placeholder="ex: kristophe@gmail.com"
+                  aria-invalid={!!getEmailError(formData.guardian_email, true)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, guardian_email: e.target.value })
+                  }
+                />
+                {getEmailError(formData.guardian_email, true) && (
+                  <p className="text-xs text-rose-300">{getEmailError(formData.guardian_email, true)}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-200">Personal Email (Required)</Label>
+                <Input
+                  type="email"
+                  className={inputClass}
+                  value={formData.personal_email}
+                  placeholder="ex: kristophe@gmail.com"
+                  aria-invalid={!!getEmailError(formData.personal_email)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, personal_email: e.target.value })
+                  }
+                />
+                {getEmailError(formData.personal_email) && (
+                  <p className="text-xs text-rose-300">{getEmailError(formData.personal_email)}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label className="text-sm font-medium text-slate-200">School Email (Required)</Label>
+                <Input
+                  type="email"
+                  className={inputClass}
+                  value={formData.email}
+                  placeholder="e.g. 4949@sslsd.education"
+                  aria-invalid={!!getEmailError(formData.email)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                />
+                <p className="text-xs text-slate-400">Automatically filled from your admission number. You can edit it if needed.</p>
+                {getEmailError(formData.email) && (
+                  <p className="text-xs text-rose-300">{getEmailError(formData.email)}</p>
+                )}
+              </div>
+
+              {renderPhoneField("Phone Number", "phone")}
+              {renderPhoneField("WhatsApp Number", "contact_number")}
 
               <div className="space-y-2 sm:col-span-2">
                 <Label className="text-sm font-medium text-slate-200">
@@ -362,82 +524,11 @@ if (new Date() > DEADLINE) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">Personal Email (Optional)</Label>
-                <Input
-                  type="email"
-                  className={inputClass}
-                  value={formData.guardian_email}
-                  placeholder="ex: kristophe@gmail.com"
-                  onChange={(e) =>
-                    setFormData({ ...formData, guardian_email: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">School Email</Label>
-                <Input
-                  type="email"
-                  className={inputClass}
-                  value={formData.email}
-                  placeholder="ex: 4949@sslsd.education"
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">Phone Number</Label>
-                <Input
-                  className={inputClass}
-                  value={formData.phone}
-                  placeholder="+971 5xx xxx xxx"
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">WhatsApp Number</Label>
-                <Input
-                  className={inputClass}
-                  value={formData.contact_number}
-                  placeholder="+971 5xx xxx xxx"
-                  onChange={(e) =>
-                    setFormData({ ...formData, contact_number: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">Parent Phone Number</Label>
-                <Input
-                  className={inputClass}
-                  value={formData.parent_phone_number}
-                  placeholder="+971 5xx xxx xxx"
-                  onChange={(e) =>
-                    setFormData({ ...formData, parent_phone_number: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-slate-200">Parent WhatsApp Number</Label>
-                <Input
-                  className={inputClass}
-                  value={formData.parent_whatsapp_number}
-                  placeholder="+971 5xx xxx xxx"
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      parent_whatsapp_number: e.target.value,
-                    })
-                  }
-                />
-              </div>
+              {renderPhoneField("Parent Phone Number", "parent_phone_number")}
+              {renderPhoneField(
+                "Parent WhatsApp Number",
+                "parent_whatsapp_number"
+              )}
             </div>
           </div>
         )}
@@ -577,10 +668,14 @@ if (new Date() > DEADLINE) {
                 className="min-h-[120px] w-full rounded-2xl border border-white/10 bg-slate-950/30 p-4 text-sm text-white placeholder:text-slate-400 shadow-inner shadow-slate-950/30 outline-none transition-all duration-200 focus:border-violet-400/80 focus:ring-4 focus:ring-violet-500/15"
                 placeholder="Tell us about any photography, videography, audio production, editing, public speaking or related experience."
                 value={formData.experience}
-                onChange={(e) =>
-                  setFormData({ ...formData, experience: e.target.value })
-                }
+                onChange={(e) => setFormData({
+                  ...formData,
+                  experience: limitWords(e.target.value, 500),
+                })}
               />
+              <p className="text-right text-xs text-slate-400">
+                {getWordCount(formData.experience)} / 500 words
+              </p>
             </div>
 
             {Object.entries(resourceOptions).map(([category, resources]) => (
