@@ -1,10 +1,15 @@
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
 
+
+
 export default async function AdminPage() {
   const { data, error } = await supabase
-    .from("applications")
-    .select("*");
+  .from("applications")
+  .select("*")
+  .order("created_at", { ascending: false });
+
+    
 
   if (error) {
     return (
@@ -16,11 +21,15 @@ export default async function AdminPage() {
   }
 
   return (
+    
     <div className="admin-print-page p-8">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Applications</h1>
         <PrintButton />
       </div>
+
+      <h1 className="text-3xl font-bold">
+  Applications ({data?.length})
+</h1>
 
       {data?.map((app) => (
         <div
