@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { PrintButton } from "./PrintButton";
 
 export default async function AdminPage() {
   const { data, error } = await supabase
@@ -15,17 +16,18 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="mb-6 text-3xl font-bold">
-        Applications
-      </h1>
+    <div className="admin-print-page p-8">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-bold">Applications</h1>
+        <PrintButton />
+      </div>
 
       {data?.map((app) => (
         <div
           key={app.id}
           className="mb-4 rounded-lg border p-4"
         >
-          <h2>{app.full_name}</h2>
+          <h2 className="font-bold">{app.full_name}</h2>
 
           <p>Admission No: {app.student_id}</p>
 
@@ -58,6 +60,19 @@ export default async function AdminPage() {
           <p>{app.experience}</p>
         </div>
       ))}
+
+      <style>{`
+        @media print {
+          .admin-print-page,
+          .admin-print-page * {
+            color: #000 !important;
+          }
+
+          .admin-print-page button {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
