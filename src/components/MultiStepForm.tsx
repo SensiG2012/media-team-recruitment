@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
@@ -66,11 +66,34 @@ const resourceOptions = {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^\+\d{7,15}$/;
+const studentIdPattern = /^\d{4}$/;
+
+type CountryOption = {
+  code: string;
+  name: string;
+};
+
 type PhoneFieldKey =
   | "phone"
   | "contact_number"
   | "parent_phone_number"
   | "parent_whatsapp_number";
+
+const phoneFieldKeys: PhoneFieldKey[] = [
+  "phone",
+  "contact_number",
+  "parent_phone_number",
+  "parent_whatsapp_number",
+];
+
+const fallbackCountryOptions: CountryOption[] = [
+  { code: "+974", name: "Qatar" },
+  { code: "+971", name: "United Arab Emirates" },
+  { code: "+966", name: "Saudi Arabia" },
+  { code: "+91", name: "India" },
+  { code: "+44", name: "United Kingdom" },
+  { code: "+1", name: "United States" },
+];
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(1);
@@ -80,6 +103,10 @@ export default function MultiStepForm() {
   const [touchedPhoneFields, setTouchedPhoneFields] = useState<
     Partial<Record<PhoneFieldKey, boolean>>
   >({});
+  const [countryOptions, setCountryOptions] = useState<CountryOption[]>(
+    fallbackCountryOptions
+  );
+  const [countryCode, setCountryCode] = useState("+974");
 
   const [formData, setFormData] = useState({
     full_name: "",
@@ -103,6 +130,35 @@ export default function MultiStepForm() {
 
   const maxSteps = 4;
   const progress = (step / maxSteps) * 100;
+
+  useEffect(() => {
+    const loadCountryOptions = async () => {
+      try {
+        const response = await fetch(
+          "https://countriesnow.space/api/v0.1/countries/codes"
+        );
+
+        if (!response.ok) throw new Error("Unable to load country codes.");
+
+        const result = (await response.json()) as {
+          data?: Array<{ name?: string; dial_code?: string }>;
+        };
+        const options = (result.data ?? [])
+          .flatMap((country) =>
+            country.name && country.dial_code
+              ? [{ code: country.dial_code.replace(/\s/g, ""), name: country.name }]
+              : []
+          )
+          .sort((first, second) => first.name.localeCompare(second.name));
+
+        if (options.length > 0) setCountryOptions(options);
+      } catch {
+        setCountryOptions(fallbackCountryOptions);
+      }
+    };
+
+    void loadCountryOptions();
+  }, []);
 
   const showError = (message: string) => {
     setErrorMessage(message);
@@ -141,6 +197,11 @@ export default function MultiStepForm() {
 
       if (!isComplete) {
         showError("Please fill in all required personal information fields.");
+        return false;
+      }
+
+      if (!studentIdPattern.test(formData.student_id.trim())) {
+        showError("Student admission number must be exactly 4 digits.");
         return false;
       }
 
@@ -206,13 +267,42 @@ export default function MultiStepForm() {
     text.trim() ? text.trim().split(/\s+/).length : 0;
 
   const limitWords = (text: string, limit: number) =>
-    text.trim().split(/\s+/).slice(0, limit).join(" ");
+    (() => {
+      const wordPattern = /\S+/g;
+      let match: RegExpExecArray | null;
+      let wordCount = 0;
+      let endIndex = text.length;
+
+      while ((match = wordPattern.exec(text)) !== null) {
+        wordCount += 1;
+        if (wordCount === limit) endIndex = match.index + match[0].length;
+        if (wordCount > limit) return text.slice(0, endIndex);
+      }
+
+      return text;
+    })();
+
+  const updateCountryCode = (nextCountryCode: string) => {
+    setCountryCode(nextCountryCode);
+    setFormData((current) => ({
+      ...current,
+      ...Object.fromEntries(
+        phoneFieldKeys.map((key) => [
+          key,
+          `${nextCountryCode}${current[key].replace(/^\+\d+/, "")}`,
+        ])
+      ) as Pick<typeof current, PhoneFieldKey>,
+    }));
+  };
 
   const renderPhoneField = (
     label: string,
     valueKey: PhoneFieldKey,
   ) => {
     const value = formData[valueKey];
+    const localNumber = value.startsWith(countryCode)
+      ? value.slice(countryCode.length)
+      : value.replace(/^\+\d+/, "");
     const phoneError = getPhoneError(value, touchedPhoneFields[valueKey]);
     const inputId = `${valueKey}-input`;
 
@@ -230,37 +320,46 @@ export default function MultiStepForm() {
         >
           {label}
         </Label>
-        <Input
-            id={inputId}
-            className={inputClass}
-            value={value}
-            placeholder="+974501234567"
-            inputMode="tel"
-            aria-invalid={!!phoneError}
-            onFocus={() =>
-              setTouchedPhoneFields((current) => ({
-                ...current,
-                [valueKey]: true,
-              }))
-            }
-            onKeyDown={(event) => {
-              if (event.key.length === 1 && !/[\d+]/.test(event.key)) {
-                event.preventDefault();
+        <div className="flex h-12 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/30 shadow-inner shadow-slate-950/30 transition-all focus-within:border-violet-400/80 focus-within:ring-4 focus-within:ring-violet-500/15">
+            <select
+              aria-label={`${label} country code`}
+              className="h-full w-24 shrink-0 border-r border-white/10 bg-slate-950/50 px-2 text-xs text-white outline-none [&>option]:bg-slate-900"
+              value={countryCode}
+              onChange={(event) => updateCountryCode(event.target.value)}
+            >
+              {countryOptions.map((option) => (
+                <option key={`${option.name}-${option.code}`} value={option.code}>
+                  {option.name} ({option.code})
+                </option>
+              ))}
+            </select>
+            <Input
+              id={inputId}
+              className="h-full min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 text-sm text-white placeholder:text-slate-400 outline-none focus-visible:border-0 focus-visible:ring-0"
+              value={localNumber}
+              placeholder="501234567"
+              inputMode="tel"
+              aria-invalid={!!phoneError}
+              onFocus={() =>
+                setTouchedPhoneFields((current) => ({
+                  ...current,
+                  [valueKey]: true,
+                }))
               }
-
-              if (event.key === "+" && event.currentTarget.selectionStart !== 0) {
-                event.preventDefault();
-              }
-            }}
-            onChange={(event) =>
-              setFormData({
-                ...formData,
-                [valueKey]: event.target.value
-                  .replace(/[^\d+]/g, "")
-                  .replace(/(?!^)\+/g, ""),
-              })
-            }
-          />
+              onKeyDown={(event) => {
+                if (event.key.length === 1 && !/\d/.test(event.key)) {
+                  event.preventDefault();
+                }
+              }}
+              onChange={(event) => {
+                const digits = event.target.value.replace(/\D/g, "");
+                setFormData((current) => ({
+                  ...current,
+                  [valueKey]: `${countryCode}${digits}`,
+                }));
+              }}
+            />
+          </div>
         {phoneError && <p className="text-xs text-rose-300">{phoneError}</p>}
       </div>
     );
@@ -416,7 +515,7 @@ if (new Date() > DEADLINE) {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-200">Full Name</Label>
                 <Input
                   className={inputClass}
@@ -428,7 +527,7 @@ if (new Date() > DEADLINE) {
                 />
               </div>
 
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-200">
                   Student Admission Number
                 </Label>
@@ -436,18 +535,24 @@ if (new Date() > DEADLINE) {
                   className={inputClass}
                   value={formData.student_id}
                   placeholder="e.g. 3939"
+                  inputMode="numeric"
+                  maxLength={4}
+                  aria-invalid={
+                    !!formData.student_id && !studentIdPattern.test(formData.student_id)
+                  }
                   onChange={(e) => {
+                    const studentId = e.target.value.replace(/\D/g, "").slice(0, 4);
                     const generatedSchoolEmail = formData.student_id
                       ? `${formData.student_id}@sslsd.education`
                       : "";
 
                     setFormData({
                       ...formData,
-                      student_id: e.target.value,
+                      student_id: studentId,
                       email:
                         !formData.email || formData.email === generatedSchoolEmail
-                          ? e.target.value
-                            ? `${e.target.value}@sslsd.education`
+                          ? studentId
+                            ? `${studentId}@sslsd.education`
                             : ""
                           : formData.email,
                     });
@@ -473,6 +578,20 @@ if (new Date() > DEADLINE) {
               </div>
 
               <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-200">
+                  Parent / Guardian Name
+                </Label>
+                <Input
+                  className={inputClass}
+                  value={formData.guardian_name}
+                  placeholder="ex: Lao Khoa"
+                  onChange={(e) =>
+                    setFormData({ ...formData, guardian_name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-200">Personal Email (Required)</Label>
                 <Input
                   type="email"
@@ -489,7 +608,7 @@ if (new Date() > DEADLINE) {
                 )}
               </div>
 
-              <div className="space-y-2 sm:col-span-2">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-slate-200">School Email (Required)</Label>
                 <Input
                   type="email"
@@ -501,7 +620,6 @@ if (new Date() > DEADLINE) {
                     setFormData({ ...formData, email: e.target.value })
                   }
                 />
-                <p className="text-xs text-slate-400">Automatically filled from your admission number. You can edit it if needed.</p>
                 {getEmailError(formData.email) && (
                   <p className="text-xs text-rose-300">{getEmailError(formData.email)}</p>
                 )}
@@ -509,20 +627,6 @@ if (new Date() > DEADLINE) {
 
               {renderPhoneField("Phone Number", "phone")}
               {renderPhoneField("WhatsApp Number", "contact_number")}
-
-              <div className="space-y-2 sm:col-span-2">
-                <Label className="text-sm font-medium text-slate-200">
-                  Parent / Guardian Name
-                </Label>
-                <Input
-                  className={inputClass}
-                  value={formData.guardian_name}
-                  placeholder="ex: Lao Khoa"
-                  onChange={(e) =>
-                    setFormData({ ...formData, guardian_name: e.target.value })
-                  }
-                />
-              </div>
 
               {renderPhoneField("Parent Phone Number", "parent_phone_number")}
               {renderPhoneField(
@@ -749,7 +853,7 @@ if (new Date() > DEADLINE) {
               onClick={() => {
                 if (validateStep(step)) setStep(step + 1);
               }}
-              className="min-h-11 w-full min-w-[110px] cursor-pointer rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 sm:w-auto"
+              className="min-h-11 w-auto min-w-[110px] cursor-pointer self-end rounded-full border border-violet-400/60 bg-gradient-to-r from-violet-500 to-indigo-500 px-5 text-white shadow-lg shadow-violet-950/40 hover:brightness-110 sm:ml-auto"
             >
               Next →
             </Button>
