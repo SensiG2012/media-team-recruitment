@@ -1,7 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
-
-export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const { data, error } = await supabase
