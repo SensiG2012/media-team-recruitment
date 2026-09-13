@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json(
-    { success: false },
-    { status: 401 }
+    {
+    entered: password,
+    envPassword: process.env.ADMIN_PASSWORD,
+    matches: password === process.env.ADMIN_PASSWORD,
+  }
   );
 }
