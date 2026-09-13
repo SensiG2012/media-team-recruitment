@@ -1,15 +1,42 @@
-export const dynamic = "force-dynamic";
+"use client";
+
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
 
-export default async function AdminPage() {
-  const { data, error } = await supabase
-  .from("applications")
-  .select("*")
-  .order("created_at", { ascending: false });
+export default function AdminPage() {
+  const [authorized, setAuthorized] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [error, setError] = useState<any>(null);
 
-    
+  useEffect(() => {
+    if (localStorage.getItem("admin") === "true") {
+      setAuthorized(true);
+    } else {
+      window.location.href = "/admin-login";
+    }
+  }, []);
+
+  useEffect(() => {
+    async function load() {
+      const { data, error } = await supabase
+        .from("applications")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      setData(data ?? []);
+      setError(error);
+    }
+
+    if (authorized) {
+      load();
+    }
+  }, [authorized]);
+
+  if (!authorized) {
+    return null;
+  }
 
   if (error) {
     return (
