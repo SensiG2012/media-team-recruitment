@@ -1,4 +1,4 @@
-"use client";
+/* "use client";
 
 import { Printer } from "lucide-react";
 
@@ -14,3 +14,4 @@ export function PrintButton() {
     </button>
   );
 }
+ */
