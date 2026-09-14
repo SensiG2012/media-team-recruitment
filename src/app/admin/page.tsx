@@ -11,12 +11,28 @@ export default function AdminPage() {
   const [data, setData] = useState<any[]>([]);
   const [error, setError] = useState<any>(null);
 
+  const modeClasses =
+  role === "admin"
+    ? {
+        header:
+          "bg-yellow-300/20 border border-yellow-400 backdrop-blur-xl",
+        card:
+          "bg-amber-300/20 border-yellow-300 backdrop-blur-xl",
+      }
+    : {
+        header:
+          "bg-teal-300/20 border border-teal-400 backdrop-blur-xl",
+        card:
+          "bg-cyan-300/20 border-teal-300 backdrop-blur-xl",
+      };
+
   useEffect(() => {
     const savedRole = localStorage.getItem("role");
 
     if (savedRole) {
       setRole(savedRole);
       setAuthorized(true);
+      
     } else {
       window.location.href = "/admin-login";
     }
@@ -53,19 +69,29 @@ export default function AdminPage() {
 
   return (
     <div className="admin-print-page p-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">
-          Applications ({data.length})
-        </h1>
+      <div
+  className={`mb-6 flex items-center justify-between gap-4 rounded-xl p-4 ${modeClasses.header}`}
+>
+        <div>
+  <h1 className="text-3xl font-bold">
+    Applications ({data.length})
+  </h1>
+
+  <p className="text-sm opacity-80">
+    {role === "admin"
+      ? "Admin Mode"
+      : "Review Mode"}
+  </p>
+</div>
 
         {role === "admin" && <PrintButton />}
       </div>
 
       {data.map((app) => (
         <div
-          key={app.id}
-          className="mb-4 rounded-lg border p-4"
-        >
+  key={app.id}
+  className={`mb-4 rounded-xl border p-4 ${modeClasses.card}`}
+>
           {/* Everyone sees */}
           <h2 className="font-bold">{app.full_name}</h2>
 
@@ -107,6 +133,21 @@ export default function AdminPage() {
               </p>
 
               <p>{app.experience}</p>
+
+              <p>
+  Submitted:{" "}
+  {new Date(app.created_at).toLocaleString(
+    "en-GB",
+    {
+      timeZone: "Europe/Moscow",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  )}
+</p>
             </>
           )}
         </div>
