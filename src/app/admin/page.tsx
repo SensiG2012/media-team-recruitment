@@ -1,5 +1,44 @@
 "use client";
 
+function getRoleColor(role: string) {
+  const VISUAL_ROLES = [
+    "Photographer",
+    "Videographer",
+    "Video Editor",
+    "Photo Editor",
+    "2D Animator",
+    "3D Animator",
+  ];
+
+  const AUDIO_ROLES = [
+    "Audio Mixer",
+    "Sound Engineer",
+    "Music Producer",
+  ];
+
+  const SPEAKING_ROLES = [
+    "Script Writer",
+    "Commentator",
+    "Comperer",
+    "Announcer",
+  ];
+
+  if (VISUAL_ROLES.includes(role)) {
+    return "text-white";
+  }
+
+  if (AUDIO_ROLES.includes(role)) {
+    return "text-cyan-300";
+  }
+
+  if (SPEAKING_ROLES.includes(role)) {
+    return "text-pink-300";
+  }
+
+  return "text-gray-300";
+}
+
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
@@ -10,6 +49,72 @@ export default function AdminPage() {
 
   const [data, setData] = useState<any[]>([]);
   const [error, setError] = useState<any>(null);
+
+  const [selectedTeam, setSelectedTeam] = useState("all");
+  const [selectedRole, setSelectedRole] = useState("all");
+
+  
+
+const VISUAL_ROLES = [
+  "Photographer",
+  "Videographer",
+  "Video Editor",
+  "Photo Editor",
+  "2D Animator",
+  "3D Animator",
+];
+
+const AUDIO_ROLES = [
+  "Audio Mixer",
+  "Sound Engineer",
+  "Music Producer",
+];
+
+const SPEAKING_ROLES = [
+  "Script Writer",
+  "Commentator",
+  "Comperer",
+  "Announcer",
+];
+
+const filteredData = data.filter((app) => {
+  if (selectedRole !== "all") {
+    return app.roles?.includes(selectedRole);
+  }
+
+  if (selectedTeam === "all") {
+    return true;
+  }
+
+  if (
+    selectedTeam === "visual" &&
+    app.roles?.some((r: string) =>
+      VISUAL_ROLES.includes(r)
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    selectedTeam === "audio" &&
+    app.roles?.some((r: string) =>
+      AUDIO_ROLES.includes(r)
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    selectedTeam === "speaking" &&
+    app.roles?.some((r: string) =>
+      SPEAKING_ROLES.includes(r)
+    )
+  ) {
+    return true;
+  }
+
+  return false;
+});
 
   const modeClasses =
   role === "admin"
@@ -87,7 +192,70 @@ export default function AdminPage() {
         {role === "admin" && <PrintButton />}
       </div>
 
-      {data.map((app) => (
+      <div className="mb-4">
+  <select
+  value={selectedTeam}
+  disabled={selectedRole !== "all"}
+  onChange={(e) => setSelectedTeam(e.target.value)}
+  className={`
+    rounded-xl border px-4 py-2 transition-all duration-200 hover:-translate-y-0.5
+hover:shadow-[0_0_20px_rgba(0,255,255,0.2)]
+    ${selectedRole !== "all"
+      ? "cursor-not-allowed opacity-40 grayscale"
+      : "cursor-pointer hover:scale-105 hover:border-cyan-400 hover:shadow-lg"}
+  `}
+>
+    <option value="all" className="text-black">
+  All Applicants
+</option>
+
+<option value="visual"className="text-black">
+  Visual Team
+</option>
+
+<option value="audio" className="text-black">
+  Audio Team
+</option>
+
+<option value="speaking" className="text-black">
+  Speaking Team
+</option>
+  </select>
+
+      <select 
+  value={selectedRole}
+  disabled={selectedTeam !== "all"}
+  onChange={(e) => setSelectedRole(e.target.value)}
+  className={`
+    rounded-xl border px-4 py-2 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,105,180,0.25)]
+    ${selectedTeam !== "all"
+      ? "cursor-not-allowed opacity-40 grayscale"
+      : "cursor-pointer hover:scale-105 hover:border-pink-400 hover:shadow-lg"}
+  `}
+>
+
+  <option value="all" className="text-black">All Roles</option>
+
+  <option value="Photographer" className="text-black">Photographer</option>
+  <option value="Videographer" className="text-black">Videographer</option>
+  <option value="Video Editor" className="text-black">Video Editor</option>
+  <option value="Photo Editor" className="text-black">Photo Editor</option>
+  <option value="2D Animator" className="text-black">2D Animator</option>
+  <option value="3D Animator" className="text-black">3D Animator</option>
+
+  <option value="Audio Mixer" className="text-black">Audio Mixer</option>
+  <option value="Sound Engineer" className="text-black">Sound Engineer</option>
+  <option value="Music Producer" className="text-black">Music Producer</option>
+
+  <option value="Script Writer" className="text-black">Script Writer</option>
+  <option value="Commentator" className="text-black">Commentator</option>
+  <option value="Comperer" className="text-black">Comperer</option>
+  <option value="Announcer" className="text-black">Announcer</option>
+</select>
+
+</div>
+
+      {filteredData.map((app) => (
         <div
   key={app.id}
   className={`mb-4 rounded-xl border p-4 ${modeClasses.card}`}
@@ -101,9 +269,16 @@ export default function AdminPage() {
 
           <p>Campus: {app.campus}</p>
 
-          <p>
-            Roles: {app.roles?.join(", ")}
-          </p>
+          <div className="flex flex-wrap gap-3">
+  {app.roles?.map((roleName: string) => (
+    <span
+      key={roleName}
+      className={`font-semibold ${getRoleColor(roleName)}`}
+    >
+      {roleName}
+    </span>
+  ))}
+</div>
 
           {/* Admin-only details */}
           {role === "admin" && (
