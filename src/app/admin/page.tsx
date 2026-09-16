@@ -39,10 +39,44 @@ function getRoleColor(role: string) {
 }
 
 
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
 import { ExportButton } from "./ExportButton";
+
+function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="mr-1 text-sm font-semibold">{label}:</span>
+      {children}
+    </div>
+  );
+}
+
+function FilterButton({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-xl border px-3 py-2 text-sm transition-all duration-200 hover:-translate-y-0.5 ${
+        active
+          ? "border-cyan-400 bg-cyan-400/30 text-white shadow-lg"
+          : "border-white/30 bg-white/10 hover:border-cyan-400"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function AdminPage() {
   const [authorized, setAuthorized] = useState(false);
@@ -51,9 +85,9 @@ export default function AdminPage() {
   const [data, setData] = useState<any[]>([]);
   const [error, setError] = useState<any>(null);
 
-  const [selectedTeam, setSelectedTeam] = useState("all");
-  const [selectedRole, setSelectedRole] = useState("all");
-  const [selectedYear, setSelectedYear] = useState("all");
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
 
   
 
@@ -79,47 +113,49 @@ const SPEAKING_ROLES = [
   "Announcer",
 ];
 
+const TEAM_OPTIONS = [
+  { value: "visual", label: "Visual Team", roles: VISUAL_ROLES },
+  { value: "audio", label: "Audio Team", roles: AUDIO_ROLES },
+  { value: "speaking", label: "Speaking Team", roles: SPEAKING_ROLES },
+];
+
+const ROLE_OPTIONS = [
+  ...VISUAL_ROLES,
+  ...AUDIO_ROLES,
+  ...SPEAKING_ROLES,
+];
+
+function toggleSelection(
+  selected: string[],
+  value: string,
+  setSelected: (values: string[]) => void
+) {
+  setSelected(
+    selected.includes(value)
+      ? selected.filter((item) => item !== value)
+      : [...selected, value]
+  );
+}
+
 const filteredData = data.filter((app) => {
-  if (selectedYear !== "all" && String(app.year) !== selectedYear) {
+  if (selectedYears.length > 0 && !selectedYears.includes(String(app.year))) {
     return false;
   }
 
-  if (selectedRole !== "all") {
-    return app.roles?.includes(selectedRole);
-  }
-
-  if (selectedTeam === "all") {
-    return true;
-  }
-
   if (
-    selectedTeam === "visual" &&
-    app.roles?.some((r: string) =>
-      VISUAL_ROLES.includes(r)
-    )
+    selectedRoles.length > 0 &&
+    !selectedRoles.some((selectedRole) => app.roles?.includes(selectedRole))
   ) {
-    return true;
+    return false;
   }
 
-  if (
-    selectedTeam === "audio" &&
-    app.roles?.some((r: string) =>
-      AUDIO_ROLES.includes(r)
-    )
-  ) {
-    return true;
-  }
-
-  if (
-    selectedTeam === "speaking" &&
-    app.roles?.some((r: string) =>
-      SPEAKING_ROLES.includes(r)
-    )
-  ) {
-    return true;
-  }
-
-  return false;
+  return (
+    selectedTeams.length === 0 ||
+    selectedTeams.some((selectedTeam) => {
+      const team = TEAM_OPTIONS.find((option) => option.value === selectedTeam);
+      return team?.roles.some((teamRole) => app.roles?.includes(teamRole));
+    })
+  );
 });
 
   const modeClasses =
@@ -203,81 +239,43 @@ const filteredData = data.filter((app) => {
         )}
       </div>
 
-      <div className="mb-4">
-  <select
-  value={selectedYear}
-  onChange={(e) => setSelectedYear(e.target.value)}
-  className="mr-2 rounded-xl border px-4 py-2 transition-all duration-200 hover:scale-105 hover:border-cyan-400 hover:shadow-lg"
->
-    <option value="all" className="text-black">All Years</option>
-    {Array.from({ length: 7 }, (_, index) => index + 7).map((year) => (
-      <option key={year} value={String(year)} className="text-black">
-        Year {year}
-      </option>
-    ))}
-  </select>
+      <div className="mb-4 space-y-3">
+        <FilterGroup label="Years">
+          {Array.from({ length: 7 }, (_, index) => String(index + 7)).map((year) => (
+            <FilterButton
+              key={year}
+              active={selectedYears.includes(year)}
+              onClick={() => toggleSelection(selectedYears, year, setSelectedYears)}
+            >
+              Year {year}
+            </FilterButton>
+          ))}
+        </FilterGroup>
 
-  <select
-  value={selectedTeam}
-  disabled={selectedRole !== "all"}
-  onChange={(e) => setSelectedTeam(e.target.value)}
-  className={`
-    rounded-xl border px-4 py-2 transition-all duration-200 hover:-translate-y-0.5
-hover:shadow-[0_0_20px_rgba(0,255,255,0.2)]
-    ${selectedRole !== "all"
-      ? "cursor-not-allowed opacity-40 grayscale"
-      : "cursor-pointer hover:scale-105 hover:border-cyan-400 hover:shadow-lg"}
-  `}
->
-    <option value="all" className="text-black">
-  All Applicants
-</option>
+        <FilterGroup label="Teams">
+          {TEAM_OPTIONS.map((team) => (
+            <FilterButton
+              key={team.value}
+              active={selectedTeams.includes(team.value)}
+              onClick={() => toggleSelection(selectedTeams, team.value, setSelectedTeams)}
+            >
+              {team.label}
+            </FilterButton>
+          ))}
+        </FilterGroup>
 
-<option value="visual"className="text-black">
-  Visual Team
-</option>
-
-<option value="audio" className="text-black">
-  Audio Team
-</option>
-
-<option value="speaking" className="text-black">
-  Speaking Team
-</option>
-  </select>
-
-      <select 
-  value={selectedRole}
-  disabled={selectedTeam !== "all"}
-  onChange={(e) => setSelectedRole(e.target.value)}
-  className={`
-    rounded-xl border px-4 py-2 transition-all duration-200 hover:shadow-[0_0_20px_rgba(255,105,180,0.25)]
-    ${selectedTeam !== "all"
-      ? "cursor-not-allowed opacity-40 grayscale"
-      : "cursor-pointer hover:scale-105 hover:border-pink-400 hover:shadow-lg"}
-  `}
->
-
-  <option value="all" className="text-black">All Roles</option>
-
-  <option value="Photographer" className="text-black">Photographer</option>
-  <option value="Videographer" className="text-black">Videographer</option>
-  <option value="Video Editor" className="text-black">Video Editor</option>
-  <option value="Photo Editor" className="text-black">Photo Editor</option>
-  <option value="2D Animator" className="text-black">2D Animator</option>
-  <option value="3D Animator" className="text-black">3D Animator</option>
-
-  <option value="Audio Mixer" className="text-black">Audio Mixer</option>
-  <option value="Sound Engineer" className="text-black">Sound Engineer</option>
-  <option value="Music Producer" className="text-black">Music Producer</option>
-
-  <option value="Script Writer" className="text-black">Script Writer</option>
-  <option value="Commentator" className="text-black">Commentator</option>
-  <option value="Comperer" className="text-black">Comperer</option>
-  <option value="Announcer" className="text-black">Announcer</option>
-</select>
-
-</div>
+        <FilterGroup label="Roles">
+          {ROLE_OPTIONS.map((roleOption) => (
+            <FilterButton
+              key={roleOption}
+              active={selectedRoles.includes(roleOption)}
+              onClick={() => toggleSelection(selectedRoles, roleOption, setSelectedRoles)}
+            >
+              {roleOption}
+            </FilterButton>
+          ))}
+        </FilterGroup>
+      </div>
 
       {filteredData.map((app) => (
         <div
