@@ -52,6 +52,7 @@ export default function AdminPage() {
 
   const [selectedTeam, setSelectedTeam] = useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedYear, setSelectedYear] = useState("all");
 
   
 
@@ -78,6 +79,10 @@ const SPEAKING_ROLES = [
 ];
 
 const filteredData = data.filter((app) => {
+  if (selectedYear !== "all" && String(app.year) !== selectedYear) {
+    return false;
+  }
+
   if (selectedRole !== "all") {
     return app.roles?.includes(selectedRole);
   }
@@ -193,6 +198,19 @@ const filteredData = data.filter((app) => {
       </div>
 
       <div className="mb-4">
+  <select
+  value={selectedYear}
+  onChange={(e) => setSelectedYear(e.target.value)}
+  className="mr-2 rounded-xl border px-4 py-2 transition-all duration-200 hover:scale-105 hover:border-cyan-400 hover:shadow-lg"
+>
+    <option value="all" className="text-black">All Years</option>
+    {Array.from({ length: 7 }, (_, index) => index + 7).map((year) => (
+      <option key={year} value={String(year)} className="text-black">
+        Year {year}
+      </option>
+    ))}
+  </select>
+
   <select
   value={selectedTeam}
   disabled={selectedRole !== "all"}
