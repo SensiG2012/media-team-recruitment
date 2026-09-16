@@ -42,6 +42,7 @@ function getRoleColor(role: string) {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { PrintButton } from "./PrintButton";
+import { ExportButton } from "./ExportButton";
 
 export default function AdminPage() {
   const [authorized, setAuthorized] = useState(false);
@@ -194,7 +195,12 @@ const filteredData = data.filter((app) => {
   </p>
 </div>
 
-        {role === "admin" && <PrintButton />}
+        {role === "admin" && (
+          <div className="flex flex-wrap gap-2">
+            <ExportButton applications={filteredData} />
+            <PrintButton />
+          </div>
+        )}
       </div>
 
       <div className="mb-4">
