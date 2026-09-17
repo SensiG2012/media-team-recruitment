@@ -28,7 +28,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
-const DEADLINE = new Date("2026-09-16T23:59:59");
+const DEADLINE = new Date("2026-09-17T23:59:59");
 const campusOptions = {
     Midmac: [
         "A",
