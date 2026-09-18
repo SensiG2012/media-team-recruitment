@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 const DEADLINE = new Date(
-  "2026-09-18T12:59:59"
+  "2026-09-19T12:59:59"
 );
 
 const campusOptions = {
